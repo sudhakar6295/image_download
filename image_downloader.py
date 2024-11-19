@@ -67,7 +67,10 @@ def process_table(engine, table_name):
                 
                 if isinstance(image_urls, list):
                     for index, url in enumerate(image_urls):
-                         image_name = url.split('/')[-1]  # Replace `id` with your primary key column name
+                         if table_name == 'xag':
+                             image_name = f"{url.split('=')[-1]}.jpg"  # Replace `id` with your primary key column name
+                         else:
+                            image_name = url.split('/')[-1]  # Replace `id` with your primary key column name
                          save_path = os.path.join(table_dir, image_name)
                          download_image(url, save_path)
     except SQLAlchemyError as e:
