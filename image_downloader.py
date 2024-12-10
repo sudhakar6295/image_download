@@ -53,7 +53,7 @@ def process_table(engine, table_name):
             
             # Iterate through rows and download images
             for row in rows:
-                images_lst = row[columns.index('images')] 
+                images_lst = row[columns.index('images_url')] 
                 if not images_lst:
                     continue
                 
