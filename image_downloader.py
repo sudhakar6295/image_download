@@ -43,8 +43,7 @@ def process_table(engine, table_name):
 
             result = connection.execute(text(f"SELECT * FROM `{table_name}`")) 
             columns = list(result.keys())
-
-            if 'images' not in columns:
+            if 'images_url' not in columns:
                 return
             
             # Create a directory for the table
