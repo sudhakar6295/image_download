@@ -66,12 +66,17 @@ def process_table(engine, table_name):
                 
                 if isinstance(image_urls, list):
                     for index, url in enumerate(image_urls):
-                         if table_name == 'xag':
+                        if table_name == 'xag':
                              image_name = f"{url.split('=')[-1]}.jpg"  # Replace `id` with your primary key column name
-                         else:
+                        elif table_name.lower() == 'xsf':
+                            image_name1 = image_url.split('/')[-1].replace('.jpg','')
+                            image_part2 = image_url.split('/')[-2].split('-')[0]
+                            updated_image_name = f"{image_name1}_{image_part2}.jpg"
+                            image_name = updated_image_name
+                        else:
                             image_name = url.split('/')[-1]  # Replace `id` with your primary key column name
-                         save_path = os.path.join(table_dir, image_name)
-                         download_image(url, save_path)
+                        save_path = os.path.join(table_dir, image_name)
+                        download_image(url, save_path)
     except SQLAlchemyError as e:
         logger.error(f"Error processing table {table_name}: {e}")
 
