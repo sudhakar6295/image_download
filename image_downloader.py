@@ -69,6 +69,7 @@ def process_table(engine, table_name):
                         if table_name == 'xag':
                              image_name = f"{url.split('=')[-1]}.jpg"  # Replace `id` with your primary key column name
                         elif table_name.lower() == 'xsf':
+                            image_url = url
                             image_name1 = image_url.split('/')[-1].replace('.jpg','')
                             image_part2 = image_url.split('/')[-2].split('-')[0]
                             updated_image_name = f"{image_name1}_{image_part2}.jpg"
