@@ -75,11 +75,9 @@ def process_pdf(pdf_lst, pdf_table_dir, table_name):
         return
     
     if isinstance(pdf_lst, dict):
-        for file_name,url in pdf_lst.items():
-            if '/' in file_name:
-                file_name = file_name.replace('/','')
-            if '.pdf' not in file_name:
-                file_name = f"{file_name}.pdf"
+        for file_name, url in pdf_lst.items():
+            file_name = file_name.replace('/', '') if '/' in file_name else file_name
+            file_name = f"{file_name}.pdf" if '.pdf' not in file_name else file_name
             save_path = os.path.join(pdf_table_dir, file_name)
             download_pdf(url, save_path)
 
@@ -112,16 +110,28 @@ def process_files(table_name,rows,columns):
         if images_lst:
             process_images(images_lst, img_table_dir, table_name)
 
-        pdf_lst = row[columns.index('pdf')] 
+    for row in rows:
+        raw_pdf_data = row[columns.index('pdf')]
         
-        if isinstance(pdf_lst, str):
-            try:
-                pdf_lst = safe_json_loads(pdf_lst)
-            except json.JSONDecodeError:
-                logger.warning(f"Invalid format in table {table_name}, skipping row: {pdf_lst}")
+        logger.info(f"Raw PDF Data: {raw_pdf_data}")  # Debugging print
 
-        if pdf_lst:
-            process_pdf(pdf_lst, pdf_table_dir, table_name)
+        if not raw_pdf_data or raw_pdf_data == '[]':
+            logger.warning(f"No valid PDFs found for row: {row}")
+            continue  # Skip this row
+        
+        # Ensure JSON is loaded correctly
+        pdf_lst = safe_json_loads(raw_pdf_data)
+
+        logger.info(f"Parsed PDF List: {pdf_lst}")  # Debugging print
+
+        if isinstance(pdf_lst, list) and pdf_lst:
+            for item in pdf_lst:
+                if isinstance(item, dict):
+                    for filename, url in item.items():
+                        logger.info(f"Downloading {filename} from {url}")  # Debugging print
+                        download_pdf(url, os.path.join(pdf_table_dir, filename))
+        else:
+            logger.warning(f"Invalid PDF format for row: {row}")
 
 
 # Function to process a table
