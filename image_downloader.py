@@ -73,13 +73,15 @@ def process_pdf(pdf_lst, pdf_table_dir, table_name):
 
     if table_name == 'xag':
         return
-    for file_name,url in pdf_lst.items():
-        if '/' in file_name:
-            file_name = file_name.replace('/','')
-        if '.pdf' not in file_name:
-            file_name = f"{file_name}.pdf"
-        save_path = os.path.join(pdf_table_dir, file_name)
-        download_pdf(url, save_path)
+    
+    if isinstance(pdf_lst, dict):
+        for file_name,url in pdf_lst.items():
+            if '/' in file_name:
+                file_name = file_name.replace('/','')
+            if '.pdf' not in file_name:
+                file_name = f"{file_name}.pdf"
+            save_path = os.path.join(pdf_table_dir, file_name)
+            download_pdf(url, save_path)
 
 def safe_json_loads(data):
     import json
