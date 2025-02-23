@@ -31,6 +31,20 @@ def download_image(url, save_path):
     except Exception as e:
         logger.error(f"Failed to download {url}: {e}")
 
+def download_pdf(url, save_path):
+    try:
+        if os.path.exists(save_path):
+            logger.info(f"Skipped: {save_path} already exists.")
+            return
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        with open(save_path, "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        logger.info(f"Downloaded: {url} -> {save_path}")
+    except Exception as e:
+        logger.error(f"Failed to download {url}: {e}")
+
 def process_images(images_lst, img_table_dir, table_name):
  
         if isinstance(images_lst, str):
@@ -59,8 +73,23 @@ def process_pdf(pdf_lst, pdf_table_dir, table_name):
 
     if table_name == 'xag':
         return
-        
-    import pdb; pdb.set_trace()
+    for file_name,url in pdf_lst.items():
+        if '/' in file_name:
+            file_name = file_name.replace('/','')
+        if '.pdf' not in file_name:
+            file_name = f"{file_name}.pdf"
+        save_path = os.path.join(pdf_table_dir, file_name)
+        download_pdf(url, save_path)
+
+def safe_json_loads(data):
+    import json
+    while isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError:
+            break
+    return data
+    
 
 def process_files(table_name,rows,columns):
     # Create a directory for the table
@@ -82,11 +111,13 @@ def process_files(table_name,rows,columns):
             process_images(images_lst, img_table_dir, table_name)
 
         pdf_lst = row[columns.index('pdf')] 
+        
         if isinstance(pdf_lst, str):
             try:
-                pdf_lst = json.loads(pdf_lst)
+                pdf_lst = safe_json_loads(pdf_lst)
             except json.JSONDecodeError:
                 logger.warning(f"Invalid format in table {table_name}, skipping row: {pdf_lst}")
+
         if pdf_lst:
             process_pdf(pdf_lst, pdf_table_dir, table_name)
 
