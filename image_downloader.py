@@ -58,6 +58,8 @@ def process_images(images_lst, img_table_dir, table_name):
             for index, url in enumerate(images_lst):
                 if table_name == 'xag':
                         image_name = f"{url.split('=')[-1]}.jpg"  # Replace `id` with your primary key column name
+                elif table_name == 'xmg':
+                        image_name = url.split('/')[-1].split('?')[0]
                 elif table_name.lower() == 'xsf':
                     image_url = url
                     image_name1 = image_url.split('/')[-1].replace('.jpg','')
