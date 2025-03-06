@@ -22,7 +22,10 @@ def download_image(url, save_path):
         if os.path.exists(save_path):
             logger.info(f"Skipped: {save_path} already exists.")
             return
-        response = requests.get(url, stream=True)
+        headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    }
+        response = requests.get(url, headers=headers, stream=True)
         response.raise_for_status()
         with open(save_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
@@ -105,11 +108,12 @@ def process_files(table_name,rows,columns):
 
     for row in rows:
         images_lst = row[columns.index('images_url')] 
+        
         if isinstance(images_lst, str):
             try:
                 images_lst = json.loads(images_lst)
             except json.JSONDecodeError:
-                logger.warning(f"Invalid format in table {table_name}, skipping row: {images}")
+                logger.warning(f"Invalid format in table {table_name}, skipping row: {images_lst}")
 
         if images_lst:
             process_images(images_lst, img_table_dir, table_name)
@@ -164,7 +168,6 @@ def main():
         # Get all table names
         tables = inspector.get_table_names()
         tables_to_ignore = ['requests_log','sessions']
-
         if not tables:
             logger.info("No tables found in the database.")
             return
