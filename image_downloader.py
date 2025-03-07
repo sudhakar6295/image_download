@@ -48,6 +48,35 @@ def download_pdf(url, save_path):
     except Exception as e:
         logger.error(f"Failed to download {url}: {e}")
 
+
+def download_file_from_google_drive(url,save_path):
+    """Attempts to download a file from Google Drive and logs the result."""
+    URL = "https://docs.google.com/uc?export=download"
+    session = requests.Session()
+    file_id = url.split('id=')[1]
+    response = session.get(URL, params={'id': file_id}, stream=True)
+    
+    # Check if file exists on Google Drive
+    if response.status_code == 404:
+        print(f"{URL}: 404 Not Found, skipping download.")
+        exit()
+
+    try:
+        response.raise_for_status()  # Ensure request was successful
+        with open(save_path, "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        print(f"Download complete: {save_path}")
+    except Exception as e:
+        print(f"Download failed: {e}")
+
+def get_confirm_token(response):
+    """Extracts the download warning token from cookies if present."""
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+    return None
+
 def process_images(images_lst, img_table_dir, table_name):
  
         if isinstance(images_lst, str):
@@ -80,13 +109,18 @@ def process_pdf(pdf_lst, pdf_table_dir, table_name):
         return
     
     if isinstance(pdf_lst, dict):
+        
         for file_name,url in pdf_lst.items():
             if '/' in file_name:
                 file_name = file_name.replace('/','')
             if '.pdf' not in file_name:
                 file_name = f"{file_name}.pdf"
             save_path = os.path.join(pdf_table_dir, file_name)
-            download_pdf(url, save_path)
+            if 'drive.google.com' in url:
+                
+                download_file_from_google_drive(url, save_path)
+            else:
+                download_pdf(url, save_path)
 
 def safe_json_loads(data):
     import json
@@ -125,7 +159,7 @@ def process_files(table_name,rows,columns):
                 pdf_lst = safe_json_loads(pdf_lst)
             except json.JSONDecodeError:
                 logger.warning(f"Invalid format in table {table_name}, skipping row: {pdf_lst}")
-
+        
         if pdf_lst:
             process_pdf(pdf_lst, pdf_table_dir, table_name)
 
